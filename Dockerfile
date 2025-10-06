@@ -1,20 +1,25 @@
-# Partiamo da un'immagine ufficiale che contiene già Node.js e Puppeteer (Chrome)
+# Partiamo dalla stessa immagine ufficiale
 FROM ghcr.io/puppeteer/puppeteer:latest
 
-# Impostiamo la directory di lavoro all'interno del container
+# AGGIUNTA: Installiamo alcuni font comuni per un fingerprint più realistico
+# Questo aiuta a sembrare meno un server standard
+RUN apt-get update && apt-get install -y \
+    fonts-ipafont-gothic \
+    fonts-wqy-zenhei \
+    fonts-thai-tlwg \
+    fonts-kacst \
+    fonts-freefont-ttf \
+    --no-install-recommends
+
 WORKDIR /usr/src/app
 
-# Copiamo prima il package.json per ottimizzare il caching di Docker
 COPY package.json ./
 
-# Installiamo le dipendenze della nostra app (solo Express)
+# Ora installerà express, puppeteer-extra e il plugin stealth
 RUN npm install
 
-# Copiamo il resto del codice della nostra applicazione
 COPY index.js ./
 
-# Esponiamo la porta 3000, su cui il nostro server Express è in ascolto
 EXPOSE 3000
 
-# Il comando per avviare l'applicazione quando il container parte
 CMD [ "node", "index.js" ]
