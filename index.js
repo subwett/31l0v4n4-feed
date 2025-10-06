@@ -19,7 +19,10 @@ async function scrapeMilovana() {
     try {
         // Avviamo un browser "headless" ottimizzato per ambienti server
         browser = await puppeteer.launch({
-            args: chromium.args,
+            args: [
+                '--disable-dev-shm-usage', // Aggiungi questa linea
+                ...chromium.args
+            ],
             defaultViewport: chromium.defaultViewport,
             executablePath: await chromium.executablePath(),
             headless: chromium.headless,
@@ -134,4 +137,5 @@ app.get('/rss', async (req, res) => {
 // 5. Avviamo il server
 app.listen(PORT, () => {
     console.log(`Server in ascolto sulla porta ${PORT}`);
+
 });
