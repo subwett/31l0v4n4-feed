@@ -1,30 +1,45 @@
+// Usiamo puppeteer-extra invece del puppeteer base
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const express = require('express');
-const puppeteer = require('puppeteer');
 
-const PORT = 3000; // Il container ascolterà su questa porta interna
+// Applichiamo il plugin stealth
+puppeteer.use(StealthPlugin());
+
+const PORT = 3000;
 
 async function fetchPageContent(urlToFetch) {
     let browser = null;
-    console.log(`Richiesta di fetch per: ${urlToFetch}`);
+    console.log(`Richiesta di fetch per: ${urlToFetch} (con stealth mode)`);
     try {
-        // --- INIZIO MODIFICA ---
-        // Rimuoviamo 'executablePath' e aggiorniamo 'headless'
         browser = await puppeteer.launch({
-            headless: "new", // Usiamo il nuovo headless mode come suggerito
+            headless: "new",
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage'
+                '--disable-dev-shm-usage',
+                '--single-process' // Può aiutare in ambienti con poche risorse
             ]
         });
-        // --- FINE MODIFICA ---
 
         const page = await browser.newPage();
+        
+        // Aggiungiamo un User-Agent più realistico
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36');
+        
         await page.setDefaultNavigationTimeout(60000);
 
         await page.goto(urlToFetch, { waitUntil: 'networkidle2' });
         
         const content = await page.content();
+        
+        // A volte la pagina di blocco rimane, controlliamo il titolo
+        const pageTitle = await page.title();
+        if (pageTitle.toLowerCase().includes('just a moment') || pageTitle.toLowerCase().includes('verify you are human')) {
+             console.log('Rilevata pagina di blocco anche con stealth. Accesso fallito.');
+             throw new Error("Cloudflare ha bloccato la richiesta nonostante la modalità stealth.");
+        }
+        
         console.log(`Contenuto recuperato con successo per: ${urlToFetch}`);
         return content;
 
