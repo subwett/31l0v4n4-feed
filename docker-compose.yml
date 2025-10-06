@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  puppeteer-proxy:
+    build: .
+    ports:
+      - "8080:3000"
+    restart: unless-stopped
