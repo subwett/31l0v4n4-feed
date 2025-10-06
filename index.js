@@ -7,16 +7,17 @@ async function fetchPageContent(urlToFetch) {
     let browser = null;
     console.log(`Richiesta di fetch per: ${urlToFetch}`);
     try {
-        // Avviamo Puppeteer. Le opzioni '--no-sandbox' sono FONDAMENTALI in Docker.
+        // --- INIZIO MODIFICA ---
+        // Rimuoviamo 'executablePath' e aggiorniamo 'headless'
         browser = await puppeteer.launch({
-            executablePath: '/usr/bin/google-chrome',
-            headless: true,
+            headless: "new", // Usiamo il nuovo headless mode come suggerito
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage'
             ]
         });
+        // --- FINE MODIFICA ---
 
         const page = await browser.newPage();
         await page.setDefaultNavigationTimeout(60000);
